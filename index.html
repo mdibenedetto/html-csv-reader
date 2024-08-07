@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSV to Table</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .drop-zone {
+        border: 2px dashed #007bff;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        color: #007bff;
+        margin-bottom: 20px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      img {
+        max-width: 100px;
+        max-height: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="drop-zone" id="drop-zone">Drag and drop your CSV file here</div>
+    <table id="csv-table"></table>
+
+    <script>
+      document
+        .getElementById('drop-zone')
+        .addEventListener('dragover', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          event.dataTransfer.dropEffect = 'copy';
+        });
+
+      document
+        .getElementById('drop-zone')
+        .addEventListener('drop', function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          const files = event.dataTransfer.files;
+          if (files.length > 0) {
+            const file = files[0];
+            if (file.type === 'text/csv') {
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const csvContent = e.target.result;
+                parseCSV(csvContent);
+              };
+              reader.readAsText(file);
+            } else {
+              alert('Please drop a valid CSV file.');
+            }
+          }
+        });
+
+      function parseCSV(content) {
+        const rows = content.split('\n').map((row) => row.split('|'));
+        const table = document.getElementById('csv-table');
+        table.innerHTML = '';
+
+        if (rows.length > 0) {
+          const headerRow = rows[0];
+          const header = document.createElement('tr');
+          headerRow.forEach((cell) => {
+            const th = document.createElement('th');
+            th.textContent = cell;
+            header.appendChild(th);
+          });
+          table.appendChild(header);
+
+          for (let i = 1; i < rows.length; i++) {
+            const row = document.createElement('tr');
+            rows[i].forEach((cell, index) => {
+              const td = document.createElement('td');
+              if (headerRow[index].startsWith('PICTURE_')) {
+                const img = document.createElement('img');
+                img.src = cell;
+                td.appendChild(img);
+              }else if (headerRow[index].endsWith('_url')) {
+                const link = document.createElement('a');
+                link.href = cell;
+                link.innerText = cell;
+                link.target = "_blank"
+                td.appendChild(link);
+              } else {
+                td.textContent = cell;
+              }
+              row.appendChild(td);
+            });
+            table.appendChild(row);
+          }
+        }
+      }
+    </script> 
+  </body>
+</html>
